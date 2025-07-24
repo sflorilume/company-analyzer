@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Analyzer - Learn Stock Fundamentals</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .company-selector {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .selector-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .selector-group select {
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            min-width: 200px;
+        }
+
+        .compare-btn, .add-custom-btn {
+            padding: 12px 20px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .compare-btn:hover, .add-custom-btn:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .company-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .company-info h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+
+        .company-info p {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .grade-badge {
+            padding: 15px 20px;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .grade-A { background: #28a745; }
+        .grade-B { background: #17a2b8; }
+        .grade-C { background: #ffc107; color: #212529; }
+        .grade-D { background: #fd7e14; }
+        .grade-F { background: #dc3545; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .metric-flag {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.2em;
+        }
+
+        .help-btn {
+            background: none;
+            border: none;
+            color: #17a2b8;
+            cursor: pointer;
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 50%;
+            background: #e9ecef;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .confidence-meter {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 15px;
+            transition: all 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .notes-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .custom-form {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .custom-form input {
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .custom-form button {
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .recommendation h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .selector-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .selector-group select {
+                min-width: auto;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Company Analyzer</h1>
+            <p>Learn Stock Fundamentals with Interactive Analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="company-selector">
+                <div class="selector-group">
+                    <label for="companySelect">Select Company:</label>
+                    <select id="companySelect">
+                        <option value="">Choose a company...</option>
+                    </select>
+                    <button class="compare-btn" onclick="toggleCompareMode()">Compare Mode</button>
+                    <button class="add-custom-btn" onclick="showCustomForm()">Add Custom Company</button>
+                </div>
+            </div>
+
+            <div id="analysisContainer" class="analysis-grid">
+                <!-- Company analysis cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="helpTitle">Metric Explanation</h2>
+            <div id="helpContent"></div>
+        </div>
+    </div>
+
+    <!-- Custom Company Modal -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add Custom Company</h2>
+            <form class="custom-form" onsubmit="addCustomCompany(event)">
+                <input type="text" id="customSymbol" placeholder="Stock Symbol (e.g., GOOGL)" required>
+                <input type="text" id="customName" placeholder="Company Name" required>
+                <input type="number" id="customPE" placeholder="P/E Ratio" step="0.1" required>
+                <input type="number" id="customEPS" placeholder="Earnings Per Share" step="0.01" required>
+                <input type="number" id="customROE" placeholder="Return on Equity %" step="0.1" required>
+                <input type="number" id="customDebt" placeholder="Debt-to-Equity Ratio" step="0.1" required>
+                <input type="number" id="customMargin" placeholder="Profit Margin %" step="0.1" required>
+                <button type="submit">Add Company</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dummy data for companies
+        const companies = {
+            AAPL: {
+                symbol: "AAPL",
+                name: "Apple Inc.",
+                PE: 28.5,
+                EPS: 6.15,
+                revenueGrowth: [10, 12, 9],
+                netIncomeGrowth: [8, 7, 6],
+                debtEquityRatio: 1.5,
+                ROE: 20.5,
+                profitMargin: 22.4
+            },
+            MSFT: {
+                symbol: "MSFT",
+                name: "Microsoft Corporation",
+                PE: 32.1,
+                EPS: 11.85,
+                revenueGrowth: [14, 17, 12],
+                netIncomeGrowth: [20, 15, 11],
+                debtEquityRatio: 0.4,
+                ROE: 45.2,
+                profitMargin: 36.7
+            },
+            GOOGL: {
+                symbol: "GOOGL",
+                name: "Alphabet Inc.",
+                PE: 24.3,
+                EPS: 5.80,
+                revenueGrowth: [13, 23, 7],
+                netIncomeGrowth: [34, 89, -21],
+                debtEquityRatio: 0.1,
+                ROE: 18.9,
+                profitMargin: 21.2
+            },
+            TSLA: {
+                symbol: "TSLA",
+                name: "Tesla Inc.",
+                PE: 65.4,
+                EPS: 4.73,
+                revenueGrowth: [71, 56, 28],
+                netIncomeGrowth: [665, 128, 19],
+                debtEquityRatio: 0.1,
+                ROE: 28.1,
+                profitMargin: 7.5
+            },
+            AMZN: {
+                symbol: "AMZN",
+                name: "Amazon.com Inc.",
+                PE: 125.8,
+                EPS: 0.98,
+                revenueGrowth: [22, 38, 12],
+                netIncomeGrowth: [-847, 84, 56],
+                debtEquityRatio: 0.5,
+                ROE: 1.4,
+                profitMargin: 3.1
+            },
+            WMT: {
+                symbol: "WMT",
+                name: "Walmart Inc.",
+                PE: 15.2,
+                EPS: 4.87,
+                revenueGrowth: [2, 7, 1],
+                netIncomeGrowth: [1, 76, -25],
+                debtEquityRatio: 0.6,
+                ROE: 8.9,
+                profitMargin: 1.5
+            },
+            JNJ: {
+                symbol: "JNJ",
+                name: "Johnson & Johnson",
+                PE: 18.7,
+                EPS: 8.32,
+                revenueGrowth: [1, 14, -2],
+                netIncomeGrowth: [-35, 42, -17],
+                debtEquityRatio: 0.4,
+                ROE: 12.3,
+                profitMargin: 16.8
+            },
+            V: {
+                symbol: "V",
+                name: "Visa Inc.",
+                PE: 29.8,
+                EPS: 7.31,
+                revenueGrowth: [10, 21, -5],
+                netIncomeGrowth: [9, 17, -5],
+                debtEquityRatio: 0.4,
+                ROE: 38.1,
+                profitMargin: 51.6
+            }
+        };
+
+        // Metric explanations
+        const metricHelp = {
+            PE: {
+                title: "Price-to-Earnings Ratio (P/E)",
+                content: "The P/E ratio compares a company's stock price to its earnings per share. A lower P/E might indicate the stock is undervalued, while a higher P/E might suggest overvaluation or high growth expectations. Generally, a P/E under 20 is considered reasonable for most companies."
+            },
+            EPS: {
+                title: "Earnings Per Share (EPS)",
+                content: "EPS shows how much profit a company makes for each share of stock. Higher EPS generally indicates better profitability. Growing EPS over time is a positive sign for investors."
+            },
+            ROE: {
+                title: "Return on Equity (ROE)",
+                content: "ROE measures how effectively a company uses shareholders' equity to generate profits. An ROE above 15% is generally considered good, showing the company is generating strong returns for shareholders."
+            },
+            DebtEquity: {
+                title: "Debt-to-Equity Ratio",
+                content: "This ratio compares a company's total debt to shareholders' equity. A ratio above 2.0 might indicate high financial risk, while lower ratios suggest more conservative financial management."
+            },
+            ProfitMargin: {
+                title: "Profit Margin",
+                content: "Profit margin shows what percentage of revenue becomes profit. Higher margins indicate more efficient operations. A margin below 10% might be concerning, depending on the industry."
+            },
+            RevenueGrowth: {
+                title: "Revenue Growth",
+                content: "This shows how much a company's sales have grown year-over-year. Consistent positive growth indicates a healthy, expanding business."
+            }
+        };
+
+        let compareMode = false;
+        let selectedCompanies = [];
+        let charts = {};
+
+        // Initialize the application
+        function init() {
+            populateCompanySelect();
+            loadCustomCompanies();
+        }
+
+        // Populate company dropdown
+        function populateCompanySelect() {
+            const select = document.getElementById('companySelect');
+            select.innerHTML = '<option value="">Choose a company...</option>';
+            
+            Object.keys(companies).forEach(symbol => {
+                const option = document.createElement('option');
+                option.value = symbol;
+                option.textContent = `${symbol} - ${companies[symbol].name}`;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', handleCompanySelection);
+        }
+
+        // Handle company selection
+        function handleCompanySelection() {
+            const select = document.getElementById('companySelect');
+            const symbol = select.value;
+            
+            if (!symbol) return;
+
+            if (compareMode) {
+                if (selectedCompanies.length < 2 && !selectedCompanies.includes(symbol)) {
+                    selectedCompanies.push(symbol);
+                    if (selectedCompanies.length === 2) {
+                        displayComparison();
+                    }
+                }
+            } else {
+                selectedCompanies = [symbol];
+                displaySingleAnalysis(symbol);
+            }
+        }
+
+        // Display single company analysis
+        function displaySingleAnalysis(symbol) {
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = '';
+            container.className = 'analysis-grid';
+            
+            const card = createCompanyCard(companies[symbol]);
+            container.appendChild(card);
+        }
+
+        // Display comparison
+        function displayComparison() {
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = '';
+            container.className = 'analysis-grid';
+            
+            selectedCompanies.forEach(symbol => {
+                const card = createCompanyCard(companies[symbol]);
+                container.appendChild(card);
+            });
+        }
+
+        // Create company analysis card
+        function createCompanyCard(company) {
+            const card = document.createElement('div');
+            card.className = 'company-card';
+            
+            const grade = calculateGrade(company);
+            const confidence = calculateConfidence(company);
+            const recommendation = getRecommendation(company);
+            
+            card.innerHTML = `
+                <div class="company-header">
+                    <div class="company-info">
+                        <h2>${company.symbol}</h2>
+                        <p>${company.name}</p>
+                    </div>
+                    <div class="grade-badge grade-${grade}">
+                        Grade ${grade}
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            P/E Ratio
+                            <button class="help-btn tooltip" onclick="showHelp('PE')">
+                                ?
+                                <span class="tooltiptext">${metricHelp.PE.content}</span>
+                            </button>
+                        </div>
+                        <div class="metric-value">${company.PE}</div>
+                        <div class="metric-flag">${company.PE < 20 ? '✅' : company.PE > 40 ? '🚩' : '⚠️'}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            EPS
+                            <button class="help-btn tooltip" onclick="showHelp('EPS')">
+                                ?
+                                <span class="tooltiptext">${metricHelp.EPS.content}</span>
+                            </button>
+                        </div>
+                        <div class="metric-value">$${company.EPS}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            ROE
+                            <button class="help-btn tooltip" onclick="showHelp('ROE')">
+                                ?
+                                <span class="tooltiptext">${metricHelp.ROE.content}</span>
+                            </button>
+                        </div>
+                        <div class="metric-value">${company.ROE}%</div>
+                        <div class="metric-flag">${company.ROE > 15 ? '✅' : '📉'}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            Debt/Equity
+                            <button class="help-btn tooltip" onclick="showHelp('DebtEquity')">
+                                ?
+                                <span class="tooltiptext">${metricHelp.DebtEquity.content}</span>
+                            </button>
+                        </div>
+                        <div class="metric-value">${company.debtEquityRatio}</div>
+                        <div class="metric-flag">${company.debtEquityRatio > 2.0 ? '🚩' : '✅'}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">
+                            Profit Margin
+                            <button class="help-btn tooltip" onclick="showHelp('ProfitMargin')">
+                                ?
+                                <span class="tooltiptext">${metricHelp.ProfitMargin.content}</span>
+                            </button>
+                        </div>
+                        <div class="metric-value">${company.profitMargin}%</div>
+                        <div class="metric-flag">${company.profitMargin < 10 ? '📉' : '✅'}</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="chart-${company.symbol}"></canvas>
+                </div>
+                
+                <div class="confidence-meter">
+                    <h4>Investment Confidence</h4>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confidence}%; background: ${getConfidenceColor(confidence)}">
+                            ${confidence}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommendation">
+                    <h3>${recommendation.title}</h3>
+                    <p>${recommendation.description}</p>
+                </div>
+                
+                <div class="notes-section">
+                    <h4>Your Notes</h4>
+                    <textarea placeholder="Add your analysis notes here..." 
+                             onchange="saveNotes('${company.symbol}', this.value)">${getNotes(company.symbol)}</textarea>
+                </div>
+            `;
+            
+            // Create chart after card is added to DOM
+            setTimeout(() => createGrowthChart(company), 100);
+            
+            return card;
+        }
+
+        // Create growth chart
+        function createGrowthChart(company) {
+            const ctx = document.getElementById(`chart-${company.symbol}`);
+            if (!ctx) return;
+
+            if (charts[company.symbol]) {
+                charts[company.symbol].destroy();
+            }
+
+            charts[company.symbol] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Year 1', 'Year 2', 'Year 3'],
+                    datasets: [{
+                        label: 'Revenue Growth %',
+                        data: company.revenueGrowth,
+                        borderColor: '#17a2b8',
+                        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Net Income Growth %',
+                        data: company.netIncomeGrowth,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '3-Year Growth Trends'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Growth %'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Calculate company grade
+        function calculateGrade(company) {
+            let score = 0;
+            
+            // P/E ratio scoring
+            if (company.PE < 15) score += 2;
+            else if (company.PE < 25) score += 1;
+            else if (company.PE > 40) score -= 1;
+            
+            // ROE scoring
+            if (company.ROE > 20) score += 2;
+            else if (company.ROE > 15) score += 1;
+            else if (company.ROE < 10) score -= 1;
+            
+            // Debt/Equity scoring
+            if (company.debtEquityRatio < 0.5) score += 2;
+            else if (company.debtEquityRatio < 1.0) score += 1;
+            else if (company.debtEquityRatio > 2.0) score -= 2;
+            
+            // Profit margin scoring
+            if (company.profitMargin > 20) score += 2;
+            else if (company.profitMargin > 15) score += 1;
+            else if (company.profitMargin < 5) score -= 2;
+            else if (company.profitMargin < 10) score -= 1;
+            
+            // Growth consistency
+            const avgRevGrowth = company.revenueGrowth.reduce((a, b) => a + b, 0) / 3;
+            if (avgRevGrowth > 15) score += 1;
+            else if (avgRevGrowth < 0) score -= 1;
+            
+            // Convert score to grade
+            if (score >= 6) return 'A';
+            if (score >= 4) return 'B';
+            if (score >= 2) return 'C';
+            if (score >= 0) return 'D';
+            return 'F';
+        }
+
+        // Calculate confidence percentage
+        function calculateConfidence(company) {
+            let confidence = 50; // Base confidence
+            
+            // Adjust based on metrics
+            if (company.PE < 20) confidence += 10;
+            else if (company.PE > 40) confidence -= 15;
+            
+            if (company.ROE > 15) confidence += 15;
+            else if (company.ROE < 10) confidence -= 10;
+            
+            if (company.debtEquityRatio < 1.0) confidence += 10;
+            else if (company.debtEquityRatio > 2.0) confidence -= 20;
+            
+            if (company.profitMargin > 15) confidence += 10;
+            else if (company.profitMargin < 10) confidence -= 10;
+            
+            // Growth factor
+            const avgGrowth = company.revenueGrowth.reduce((a, b) => a + b, 0) / 3;
+            if (avgGrowth > 10) confidence += 10;
+            else if (avgGrowth < 0) confidence -= 15;
+            
+            return Math.max(10, Math.min(90, confidence));
+        }
+
+        // Get confidence color
+        function getConfidenceColor(confidence) {
+            if (confidence >= 70) return '#28a745';
+            if (confidence >= 50) return '#ffc107';
+            return '#dc3545';
+        }
+
+        // Get investment recommendation
+        function getRecommendation(company) {
+            const grade = calculateGrade(company);
+            const confidence = calculateConfidence(company);
+            
+            if (grade === 'A' && confidence >= 70) {
+                return {
+                    title: "⭐ Potential Star",
+                    description: "Strong fundamentals across all metrics. This company shows excellent financial health and growth potential."
+                };
+            } else if (grade === 'B' || grade === 'C') {
+                return {
+                    title: "📊 Stable Investment",
+                    description: "Solid fundamentals with some areas for improvement. Good for conservative investors seeking steady returns."
+                };
+            } else {
+                return {
+                    title: "⚠️ High Risk",
+                    description: "Weak fundamentals or high volatility. Requires careful analysis and risk management if considering investment."
+                };
+            }
+        }
+
+        // Toggle compare mode
+        function toggleCompareMode() {
+            compareMode = !compareMode;
+            selectedCompanies = [];
+            document.getElementById('analysisContainer').innerHTML = '';
+            
+            const btn = document.querySelector('.compare-btn');
+            btn.textContent = compareMode ? 'Exit Compare' : 'Compare Mode';
+            btn.style.background = compareMode ? '#dc3545' : '#17a2b8';
+        }
+
+        // Show help modal
+        function showHelp(metric) {
+            const modal = document.getElementById('helpModal');
+            const title = document.getElementById('helpTitle');
+            const content = document.getElementById('helpContent');
+            
+            title.textContent = metricHelp[metric].title;
+            content.textContent = metricHelp[metric].content;
+            modal.style.display = 'block';
+        }
+
+        // Show custom company form
+        function showCustomForm() {
+            document.getElementById('customModal').style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('helpModal').style.display = 'none';
+            document.getElementById('customModal').style.display = 'none';
+        }
+
+        // Add custom company
+        function addCustomCompany(event) {
+            event.preventDefault();
+            
+            const symbol = document.getElementById('customSymbol').value.toUpperCase();
+            const name = document.getElementById('customName').value;
+            const PE = parseFloat(document.getElementById('customPE').value);
+            const EPS = parseFloat(document.getElementById('customEPS').value);
+            const ROE = parseFloat(document.getElementById('customROE').value);
+            const debt = parseFloat(document.getElementById('customDebt').value);
+            const margin = parseFloat(document.getElementById('customMargin').value);
+            
+            // Generate random growth data for demo
+            const revenueGrowth = [
+                Math.floor(Math.random() * 20) - 5,
+                Math.floor(Math.random() * 20) - 5,
+                Math.floor(Math.random() * 20) - 5
+            ];
+            const netIncomeGrowth = [
+                Math.floor(Math.random() * 30) - 10,
+                Math.floor(Math.random() * 30) - 10,
+                Math.floor(Math.random() * 30) - 10
+            ];
+            
+            const customCompany = {
+                symbol,
+                name,
+                PE,
+                EPS,
+                revenueGrowth,
+                netIncomeGrowth,
+                debtEquityRatio: debt,
+                ROE,
+                profitMargin: margin
+            };
+            
+            companies[symbol] = customCompany;
+            saveCustomCompany(customCompany);
+            populateCompanySelect();
+            closeModal();
+            
+            // Clear form
+            document.getElementById('customSymbol').value = '';
+            document.getElementById('customName').value = '';
+            document.getElementById('customPE').value = '';
+            document.getElementById('customEPS').value = '';
+            document.getElementById('customROE').value = '';
+            document.getElementById('customDebt').value = '';
+            document.getElementById('customMargin').value = '';
+            
+            alert(`${symbol} has been added successfully!`);
+        }
+
+        // Save notes to localStorage
+        function saveNotes(symbol, notes) {
+            if (typeof(Storage) !== "undefined") {
+                localStorage.setItem(`notes_${symbol}`, notes);
+            }
+        }
+
+        // Get notes from localStorage
+        function getNotes(symbol) {
+            if (typeof(Storage) !== "undefined") {
+                return localStorage.getItem(`notes_${symbol}`) || '';
+            }
+            return '';
+        }
+
+        // Save custom company to localStorage
+        function saveCustomCompany(company) {
+            if (typeof(Storage) !== "undefined") {
+                const customCompanies = JSON.parse(localStorage.getItem('customCompanies') || '[]');
+                customCompanies.push(company);
+                localStorage.setItem('customCompanies', JSON.stringify(customCompanies));
+            }
+        }
+
+        // Load custom companies from localStorage
+        function loadCustomCompanies() {
+            if (typeof(Storage) !== "undefined") {
+                const customCompanies = JSON.parse(localStorage.getItem('customCompanies') || '[]');
+                customCompanies.forEach(company => {
+                    companies[company.symbol] = company;
+                });
+            }
+        }
+
+        // Export analysis as text (simple implementation)
+        function exportAnalysis(symbol) {
+            const company = companies[symbol];
+            if (!company) return;
+            
+            const grade = calculateGrade(company);
+            const confidence = calculateConfidence(company);
+            const recommendation = getRecommendation(company);
+            const notes = getNotes(symbol);
+            
+            const exportText = `
+COMPANY ANALYSIS REPORT
+======================
+Company: ${company.name} (${company.symbol})
+Analysis Date: ${new Date().toLocaleDateString()}
+Grade: ${grade}
+Investment Confidence: ${confidence}%
+
+FINANCIAL METRICS
+================
+P/E Ratio: ${company.PE}
+Earnings Per Share: ${company.EPS}
+Return on Equity: ${company.ROE}%
+Debt-to-Equity Ratio: ${company.debtEquityRatio}
+Profit Margin: ${company.profitMargin}%
+
+GROWTH TRENDS (3 Years)
+======================
+Revenue Growth: ${company.revenueGrowth.join('%, ')}%
+Net Income Growth: ${company.netIncomeGrowth.join('%, ')}%
+
+RECOMMENDATION
+=============
+${recommendation.title}
+${recommendation.description}
+
+PERSONAL NOTES
+=============
+${notes || 'No notes added.'}
+
+---
+Generated by Company Analyzer - Investment Education Tool
+            `.trim();
+            
+            // Create download link
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${symbol}_analysis.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Close modal with Escape key
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const helpModal = document.getElementById('helpModal');
+            const customModal = document.getElementById('customModal');
+            
+            if (event.target === helpModal) {
+                helpModal.style.display = 'none';
+            }
+            if (event.target === customModal) {
+                customModal.style.display = 'none';
+            }
+        }
+
+        // Add export button to company cards (helper function)
+        function addExportButton(symbol) {
+            const exportBtn = document.createElement('button');
+            exportBtn.textContent = '📄 Export Analysis';
+            exportBtn.className = 'compare-btn';
+            exportBtn.style.marginTop = '10px';
+            exportBtn.onclick = () => exportAnalysis(symbol);
+            return exportBtn;
+        }
+
+        // Enhanced company card creation with export functionality
+        function createEnhancedCompanyCard(company) {
+            const card = createCompanyCard(company);
+            const notesSection = card.querySelector('.notes-section');
+            const exportBtn = addExportButton(company.symbol);
+            notesSection.appendChild(exportBtn);
+            return card;
+        }
+
+        // Educational tips that rotate
+        const educationalTips = [
+            "💡 Tip: Don't just look at P/E ratio alone. A high P/E might indicate growth expectations.",
+            "💡 Tip: Companies with consistent revenue growth often outperform volatile ones long-term.",
+            "💡 Tip: Low debt-to-equity ratios indicate financial stability, especially during economic downturns.",
+            "💡 Tip: High ROE shows management is effectively using shareholder money to generate profits.",
+            "💡 Tip: Profit margins vary by industry. Compare companies within the same sector.",
+            "💡 Tip: Look for companies that can maintain margins during tough economic times."
+        ];
+
+        let currentTipIndex = 0;
+
+        // Show rotating educational tips
+        function showEducationalTip() {
+            const tip = educationalTips[currentTipIndex];
+            
+            // Create tip element if it doesn't exist
+            let tipElement = document.getElementById('educationalTip');
+            if (!tipElement) {
+                tipElement = document.createElement('div');
+                tipElement.id = 'educationalTip';
+                tipElement.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    max-width: 300px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                `;
+                document.body.appendChild(tipElement);
+                
+                tipElement.onclick = () => {
+                    tipElement.style.display = 'none';
+                };
+            }
+            
+            tipElement.textContent = tip;
+            tipElement.style.display = 'block';
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                if (tipElement) {
+                    tipElement.style.display = 'none';
+                }
+            }, 8000);
+            
+            currentTipIndex = (currentTipIndex + 1) % educationalTips.length;
+        }
+
+        // Show tips periodically
+        setInterval(showEducationalTip, 15000);
+
+        // Initialize the application when page loads
+        window.addEventListener('load', init);
+
+        // Show first tip after 3 seconds
+        setTimeout(showEducationalTip, 3000);
+    </script>
+</body>
+</html>
